@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+ "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zcj.dao.ArticleMapper">
+
+	<resultMap type="Article" id="articleResultMap">
+		<id column="id" property="id" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="picture" property="picture" />
+		<result column="channel_id" property="channelId" />
+		<result column="category_id" property="categoryId" />
+		<result column="user_id" property="userId" />
+		<result column="hits" property="hits" />
+		<result column="hot" property="hot" />
+		<result column="status" property="status" />
+		<result column="deleted" property="deleted" />
+		<result column="created" property="created" />
+		<result column="updated" property="updated" />
+		<result column="content_type" property="contentType" />
+		<!--作者 -->
+		<association property="user" javaType="User"
+			column="user_id" select="selectUserById">
+		</association>
+		<!-- 栏目 -->
+		<association property="channel" javaType="Channel"
+			column="channel_id" select="selectChannelById">
+		</association>
+		<!-- 分类 -->
+		<association property="category" javaType="Category"
+			column="category_id" select="selectCategoryById">
+		</association>
+
+	</resultMap>
+	
+		<resultMap type="Article" id="umap">
+		<id column="id" property="id" />
+		<result column="title" property="title" />
+		<result column="content" property="content" />
+		<result column="picture" property="picture" />
+		<result column="channel_id" property="channelId" />
+		<result column="category_id" property="categoryId" />
+		<result column="user_id" property="userId" />
+		<result column="hits" property="hits" />
+		<result column="hot" property="hot" />
+		<result column="status" property="status" />
+		<result column="deleted" property="deleted" />
+		<result column="created" property="created" />
+		<result column="updated" property="updated" />
+		<result column="content_type" property="contentType" />
+	</resultMap>
+	
+	<select id="findAll" resultMap="umap">
+	select * from cms_article where status=1
+	</select>
+	
+	<select id="selectsOrderComments" resultMap="articleResultMap">
+	 select * from cms_article order by comments desc
+	</select>
+
+	<select id="select" resultMap="articleResultMap">
+
+		select * from cms_article where id
+		=#{id}
+
+	</select>
+
+	<select id="selects" resultMap="articleResultMap">
+		select * from cms_article
+
+		<where>
+			<!-- 根据文章作者查询 -->
+			<if test="userId!=null">
+				user_id =#{userId}
+			</if>
+
+			<!-- 根据文章审核状态查询 -->
+			<if test="status!=null">
+				and status =#{status}
+			</if>
+			<!-- 根据文章标题查询 -->
+			<if test="title!=null and title!=''">
+				and title like "%"#{title}"%"
+			</if>
+			<!-- 按照栏目和分类查询 -->
+				<if test="channelId!=null">
+				and channel_Id =#{channelId}
+			</if>
+			<!-- 按照栏目和分类查询 -->
+				<if test="categoryId!=null">
+				and category_Id =#{categoryId}
+			</if>
+			<!-- 查询热点文章 -->
+				<if test="hot!=null">
+				and hot =#{hot}
+			</if>
+			
+			<!-- 按照文章发布时间查询 -->
+			<if test="created!=null">
+			  and created >= #{created} and created &lt;= now()
+			</if>
+			
+		</where>
+
+
+		order by created desc
+
+	</select>
+
+	<!-- 增加文章 -->
+	<insert id="insert">
+		insert into
+		cms_article(title,picture,content,channel_id,category_id,user_id,
+		created,updated,content_type,status,hot,deleted,num)
+		values(#{title},#{picture},#{content},#{channelId},#{categoryId},#{userId},
+		#{created},#{updated},#{contentType},#{status},#{hot},#{deleted},#{num})
+	</insert>
+
+	<select id="selectUserById" resultType="User">
+		select * from cms_user
+		where id =#{id}
+
+	</select>
+	<select id="selectChannelById" resultType="Channel">
+		select * from
+		cms_channel where id =#{id}
+
+	</select>
+	<select id="selectCategoryById" resultType="Category">
+		select * from
+		cms_category where id =#{id}
+
+	</select>
+
+	<!-- 更新文章 -->
+	<update id="update">
+		update cms_article
+		<trim prefix="set" suffix=" where id =#{id}" suffixOverrides=",">
+			<if test="title!=null and title!=''">
+				title =#{title},
+			</if>
+			<if test="content!=null and content!=''">
+				content =#{content},
+			</if>
+			<if test="hot!=null">
+				hot =#{hot},
+			</if>
+			<if test="status!=null">
+				status =#{status},
+			</if>
+		</trim>
+	</update>
+</mapper>
